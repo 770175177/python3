@@ -2,4 +2,5 @@
 
 import pyautogui as pag
 
-pag.size()
+print(pag.size())
+print(pag.position())

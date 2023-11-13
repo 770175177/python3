@@ -33,6 +33,12 @@
 	
 	pag.onScreen(100,200)	# 判断坐标是否在屏幕范围内
 	True
+    
+    # 默认这项功能为True, 这项功能意味着：当鼠标的指针在屏幕的最坐上方，程序会报错；目的是为了防止程序无法停止
+	pag.FAILSAFE =False
+
+    # 意味着所有pyautogui的指令都要暂停一秒；其他指令不会停顿；这样做，可以防止键盘鼠标操作太快；
+	pag.PAUSE = 1
 ```
 
 
@@ -66,6 +72,13 @@
 
 	# 移动至(100,100)点击2次右键，点击间隔0.5s，鼠标移动过渡时间0.2秒
 	pag.click(100,100, clicks=2,interval=0.5,button='right',duration=0.2)
+    
+    # 单击中间
+    pag.click(1000,300,button='middle')
+    
+    pag.doubleClick(10,10)  # 指定位置，双击左键
+    pag.rightClick(10,10)   # 指定位置，双击右键
+    pag.middleClick(10,10)  # 指定位置，双击中键
 ```
 
 ### 2.2.3 鼠标滚轮滚动
@@ -84,11 +97,21 @@
 ​		从当前位置按下鼠标，移动至目标位置再释放的过程
 
 ```python
-	# 将鼠标从当前位置拖至屏幕中心，默认左键
+	pag.mouseDown()   	# 鼠标按下
+	pag.mouseUp()    	# 鼠标释放
+    
+    # 将鼠标从当前位置拖至屏幕中心，默认左键
 	pag.dragTo(sizex/2,sizey/2)
 
 	# 将鼠标从当前位置向左100像素、向右200像素拖动，过渡时间0.5秒，指定右键
 	pag.dragRel(-100,200,duration=0.5,button='right')
+```
+
+### 2.2.4 鼠标位置
+
+```python
+	# 得到当前鼠标位置；输出：Point(x=1414, y=129)
+	print(pag.position())
 ```
 
 
@@ -96,7 +119,11 @@
 ## 2.3 键盘控制
 
 ```python
-	# 键名用字符串表示，支持的所有键名，存在pyautogui.KEYBOARD_KEYS变量中，包括26个字母、数字、符号、F1~F20、方向等等所有按键
+	pag.keyDown('shift')    # 按下shift
+    pag.press('4')    		# 按下 4
+    pag.keyUp('shift')   	# 释放 shift
+    
+    # 键名用字符串表示，支持的所有键名，存在pyautogui.KEYBOARD_KEYS变量中，包括26个字母、数字、符号、F1~F20、方向等等所有按键
 	pag.press('a') # 按字母A键，字母支持大小写
 	# 程序向终端输入了字符a，若程序运行时输入法为中文状态，由于没有继续输入空格或回车，输入法仅列出候选字，并不会输入到终端
 	a 
@@ -125,6 +152,32 @@
 	pag.hotkey('ctrl', 'shift', 'esc') #调出任务管理器
 	pag.hotkey('alt','ctrl','delete') # 并未调出重启界面
 ```
+
+​		**特殊按键**
+
+| 键盘字符串                      | 说明                             |
+| :------------------------------ | :------------------------------- |
+| enter（或 return 或 \n）        | 回车                             |
+| esc                             | ESC键                            |
+| shiftleft，shiftright           | 左右SHIFT键                      |
+| altleft，altright               | 左右ALT键                        |
+| ctrlleft，ctrlright             | 左右CTRL键                       |
+| tab（或 \t）                    | TAB键                            |
+| backspace，delete               | BACKSPACE，DELETE键              |
+| pageup，pagedown                | PAGE UP，PAGE DOWN键             |
+| home，end                       | HOME，END键                      |
+| up，down，left，right           | 箭头键                           |
+| f1，f2，...，f12                | F1......F12键                    |
+| volumemute, volumedown,volumeup | 声音变大变小静音（有些键盘没有） |
+| pause                           | PAUSE键，暂停键                  |
+| capslock                        | CAPS LOCK 键                     |
+| numlock                         | NUM LOCK 键                      |
+| scrolllock                      | SCROLLLOCK 键                    |
+| insert                          | INSERT键                         |
+| printscreen                     | PRINT SCREEN键                   |
+| winleft, winright               | Win键（windows ）                |
+| command                         | command键（Mac OS X ）           |
+| option                          | option（Mac OS X）               |
 
 
 
