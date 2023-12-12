@@ -73,7 +73,7 @@
 	# 移动至(100,100)点击2次右键，点击间隔0.5s，鼠标移动过渡时间0.2秒
 	pag.click(100,100, clicks=2,interval=0.5,button='right',duration=0.2)
     
-    # 单击中间
+    # 单击中键
     pag.click(1000,300,button='middle')
     
     pag.doubleClick(10,10)  # 指定位置，双击左键
@@ -114,7 +114,7 @@
 	print(pag.position())
 ```
 
-
+****
 
 ## 2.3 键盘控制
 
