@@ -34,7 +34,7 @@
 	pag.onScreen(100,200)	# 判断坐标是否在屏幕范围内
 	True
     
-    # 默认这项功能为True, 这项功能意味着：当鼠标的指针在屏幕的最坐上方，程序会报错；目的是为了防止程序无法停止
+    # 默认这项功能为True, 这项功能意味着：当鼠标的指针在屏幕的最左上方，程序会报错；目的是为了防止程序无法停止
 	pag.FAILSAFE =False
 
     # 意味着所有pyautogui的指令都要暂停一秒；其他指令不会停顿；这样做，可以防止键盘鼠标操作太快；
@@ -68,7 +68,7 @@
 	pag.click(button='right')
 
 	# 移动至(100,100)点击3次左键，点击间隔0.1s，鼠标移动过渡时间0.5秒
-	pag.click(100,100, clicks=3,interval=0.1,duration=0.5)
+	pag.click(100, 100, clicks=3, interval=0.1, duration=0.5)
 
 	# 移动至(100,100)点击2次右键，点击间隔0.5s，鼠标移动过渡时间0.2秒
 	pag.click(100,100, clicks=2,interval=0.5,button='right',duration=0.2)
