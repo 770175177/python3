@@ -2,10 +2,10 @@
 
 class Table:
     def __init__(self, fields=None, title=None, rows=[]):
-        print("refer: https://www.cnblogs.com/TOMOCAT/p/13041112.html")
         self.fileds = fields
         self.title = title
         self.rows = rows
+        self.showRows = []
         self.clomnMax = [0] * len(fields)
         self.lengthMax = sum(self.clomnMax)
         # \033 is esc, 35 is Magenta color, 1 is Bold
@@ -52,42 +52,45 @@ class Table:
             s = frame['btmL'] + m + frame['btmR']
         return s
 
-    def gen_row(self, row):
+    def gen_row(self, row, title=False):
         frame = self.frame
         clMax = self.clomnMax
         ept = frame['txtEpt']
-        rowpad = [ept + str(row[i]) + ept * (clMax[i] - len(str(row[i])) - 1) for i in range(len(row))]
-        m = frame['midCol'].join([c for c in rowpad])
-        s = frame['lftCol'] + m + frame['ritCol']
+        if title == True:
+            if len(row) < self.lengthMax:
+                s = frame['lftCol'] + ept * ((self.lengthMax - len(row)) // 2) + row + \
+                        ept * ((self.lengthMax - len(row) + 1) // 2) + frame['ritCol']
+            else:
+                s = '' 
+        else:
+            rowpad = [ept + str(row[i]) + ept * (clMax[i] - len(str(row[i])) - 1) for i in range(len(row))]
+            m = frame['midCol'].join([c for c in rowpad])
+            s = frame['lftCol'] + m + frame['ritCol']
         return s
 
     def preprocess_table(self):
         self.clomnMax = [max(len(str(item)) + 2 for item in col) for col in zip(*self.rows)]
-        print(len(self.clomnMax))
         self.lengthMax = sum(self.clomnMax) + (len(self.clomnMax) - 1)
-        print(self.clomnMax)
-        print(self.gen_frame('titleTop'))
-        print()
-        print(self.gen_frame('titleBtmMid'))
-        print(self.gen_row(self.rows[0]))
-        print(self.gen_frame('titleTopMid'))
-        print()
-        print(self.gen_frame('titleBtm'))
-        print()
-        print(self.gen_frame('top'))
-        print(self.gen_row(self.rows[1]))
-        print(self.gen_frame('mid'))
-        print(self.gen_row(self.rows[2]))
-        print(self.gen_frame('btm'))
 
     def show(self):
         self.preprocess_table()
-        print(self.fmt("hello world", 'font'))
-        print(self.rows)
+        if self.title is not None:
+            self.showRows.append(self.gen_frame('titleTop'))
+            self.showRows.append(self.gen_row(self.title, title=True))
+            self.showRows.append(self.gen_frame('titleBtmMid'))
+        else:
+            self.showRows.append(self.gen_frame('top'))
+        for row in self.rows[:-1]:
+            self.showRows.append(self.gen_row(row))
+            self.showRows.append(self.gen_frame('mid'))
+        self.showRows.append(self.gen_row(self.rows[-1]))
+        self.showRows.append(self.gen_frame('btm'))
+        s = '\n'.join(self.showRows)
+        print(s)
 
 if __name__ == '__main__':
     tab = Table(['Address', 'Bytes3', 'Bytes2', 'Bytes1', 'Bytes0'])
-    tab.title = "hello my table"
+    tab.title = "https://www.cnblogs.com/TOMOCAT/p/13041112.html"
     tab.add_row([0, '', 'pid: 9999', '9999999999999', 'vid: 4020'])
     tab.add_row([0, None, None, '', 'vid: 4030'])
     tab.add_row([0x03, '', None, '', 'vid: 4050'])
