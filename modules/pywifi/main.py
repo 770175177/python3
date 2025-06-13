@@ -34,6 +34,7 @@ class WiFi:
     def __init__(self):
         self.wifi = pywifi.PyWiFi()
         self.iface = self.wifi.interfaces()[0]  # get the first wireless controller
+        self.old_profiles = self.iface.network_profiles()
         self.results = []
         self.types = {}
         const_attrs = dir(const)
@@ -43,42 +44,41 @@ class WiFi:
         self.types['AUTH_ALG'] = {getattr(const, k): k for k in constants if 'AUTH_ALG' in k}
         self.types['CIPHER_TYPE'] = {getattr(const, k): k for k in constants if 'CIPHER_TYPE' in k}
         self.types['KEY_TYPE'] = {getattr(const, k): k for k in constants if 'KEY_TYPE' in k}
-        print("wifi init done, iface 0 status %d!"% self.iface.status())
+        print("wifi init done, iface[0] status %s!"% (self.types['IFACE_STATUS'][self.iface.status()]))
 
-    def scan_wifi(self):
+    def scan_wifi(self, show=True):
         print("scaning wifi...")
         self.iface.scan()                       # start scan
         time.sleep(2)                           # ensure scan done
         results = self.iface.scan_results()     # get scaned wifi list
         self.results = sorted(results, key=lambda x: x.signal, reverse=True)
-        count = 0
-        for result in self.results:
-            ssid = result.ssid
-            signal = result.signal
-            freq = result.freq/1024/1024
+        for i, result in enumerate(self.results):
             bssid = result.bssid
-            if signal < -80:
+            if result.signal < -80:
                 self.results.remove(result)
-            else:
-                print("\t[%2d] SSID: %-24s signal: %s dBm    freq: %.2f GHz    bssid: %s"%
-                      (count, ssid, signal, freq, bssid))
-            count += 1
+            elif show == True:
+                self.show_profile(result, i)
 
     def show_profile(self, profile, index=0):
         print("\n[%2d] ssid: %s"% (index, profile.ssid))
-        print("\tauth  : %s"% self.types['AUTH_ALG'][profile.auth])
+        print("\tsignal: %d"% (profile.signal))
+        print("\tfreq  : %.2f GHz (%d Hz)"% (profile.freq/1024/1024, profile.freq))
         print("\takm   :", end='')
         for i, akm in enumerate(profile.akm):
             print("%s%s"% (' ' if not i else '\t'+' '*8, self.types['AKM_TYPE'][akm]))
+        print("\tauth  :", end='')
+        for i, auth in enumerate(profile.auth):
+            print("%s%s"% (' ' if not i else '\t'+' '*8, self.types['AUTH_ALG'][auth]))
+        #print("\tauth  : %s"% self.types['AUTH_ALG'][profile.auth])
         print("\tcipher: %s"% self.types['CIPHER_TYPE'][profile.cipher])
+        print("\tbssid : %s"% profile.bssid)
         print("\tkey   : %s"% profile.key)
 
     def show_connected_profiles(self):
-        self.old_profiles = self.iface.network_profiles()
         for i, p in enumerate(self.old_profiles):
             self.show_profile(p, i)
 
-    def get_profile(self, ssid="", passwd=""):
+    def gen_profile_by_passwd(self, ssid="", passwd=""):
         profile = pywifi.Profile()
         profile.ssid = ssid
         profile.auth = const.AUTH_ALG_OPEN
@@ -86,6 +86,19 @@ class WiFi:
         profile.cipher = const.CIPHER_TYPE_CCMP
         profile.key = passwd
         return profile
+
+    def get_scaned_profile_by_ssid(self, ssid):
+        if not self.results:
+            print("scaned list is empty, please scan wifi!")
+        for profile in self.results:
+            if (ssid == profile.ssid):
+                print("get scaned profile ssid: %s"% (ssid))
+                return profile
+        print("can't find the ssid of %s in scaned list!"% (ssid))
+        return None
+
+    def set_profile_passwd(self, profile, passwd):
+        
 
     def connect_by_profile(self, profile, timeout=10):
         self.iface.disconnect()
@@ -104,15 +117,17 @@ class WiFi:
     def connect(self):
         ssid = "Xiaomi 13 Pro"
         passwd = "12345679"
-        profile = self.get_profile(ssid, passed)
+        profile = self.gen_profile_by_passwd(ssid, passwd)
         if (self.connect_by_profile(profile) == True):
             print("connect to %s success!"% (ssid))
         else:
-            print("connect to %s failed!"% (passwd))
+            print("connect to %s failed!"% (ssid))
 
 if __name__ == '__main__':
     wifi = WiFi()
-    wifi.scan_wifi()
-    wifi.connect()
+    wifi.scan_wifi(show=False)
+    profile = wifi.get_scaned_profile_by_ssid("Xiaomi 13 Pro")
+
+    #wifi.connect()
 
 
