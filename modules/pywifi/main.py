@@ -60,16 +60,25 @@ class WiFi:
                 self.show_profile(result, i)
 
     def show_profile(self, profile, index=0):
+        if profile is None:
+            return
         print("\n[%2d] ssid: %s"% (index, profile.ssid))
-        print("\tsignal: %d"% (profile.signal))
-        print("\tfreq  : %.2f GHz (%d Hz)"% (profile.freq/1024/1024, profile.freq))
-        print("\takm   :", end='')
-        for i, akm in enumerate(profile.akm):
-            print("%s%s"% (' ' if not i else '\t'+' '*8, self.types['AKM_TYPE'][akm]))
-        print("\tauth  :", end='')
-        for i, auth in enumerate(profile.auth):
-            print("%s%s"% (' ' if not i else '\t'+' '*8, self.types['AUTH_ALG'][auth]))
-        #print("\tauth  : %s"% self.types['AUTH_ALG'][profile.auth])
+        if hasattr(profile, 'signal'):
+            print("\tsignal: %d"% (profile.signal))
+        if hasattr(profile, 'freq'):
+            print("\tfreq  : %.2f GHz (%d Hz)"% (profile.freq/1024/1024, profile.freq))
+        if type(profile.akm) == int:
+            print("\takm   : %s"% (self.types['AKM_TYPE'][profile.akm]))
+        else:
+            print("\takm   :", end='')
+            for i, akm in enumerate(profile.akm):
+                print("%s%s"% (' ' if not i else '\t'+' '*8, self.types['AKM_TYPE'][akm]))
+        if type(profile.auth) == int:
+            print("\tauth  : %s"% (self.types['AUTH_ALG'][profile.auth]))
+        else:
+            print("\tauth  :", end='')
+            for i, auth in enumerate(profile.auth):
+                print("%s%s"% (' ' if not i else '\t'+' '*8, self.types['AUTH_ALG'][auth]))
         print("\tcipher: %s"% self.types['CIPHER_TYPE'][profile.cipher])
         print("\tbssid : %s"% profile.bssid)
         print("\tkey   : %s"% profile.key)
@@ -97,37 +106,44 @@ class WiFi:
         print("can't find the ssid of %s in scaned list!"% (ssid))
         return None
 
-    def set_profile_passwd(self, profile, passwd):
-        
+    def set_passwd_to_profile(self, profile, passwd):
+        if profile:
+            profile.key = passwd
+        return profile
 
     def connect_by_profile(self, profile, timeout=10):
-        self.iface.disconnect()
+        if self.iface.status() != const.IFACE_DISCONNECTED:
+            self.iface.disconnect()
+        # remove old profile
+        for i, old_profile in enumerate(self.old_profiles):
+            if profile.ssid == old_profile.ssid:
+                print("old %s profile exist, remove it"% (profile.ssid))
+                self.iface.remove_network_profile(old_profile)
+                self.old_profiles.remove(old_profile)
         # connecting
-        profile = self.iface.add_network_profile(profile)
+        if not self.get_scaned_profile_by_ssid(profile.ssid):
+            profile = self.iface.add_network_profile(profile)
         self.iface.connect(profile)
-        ret = False
         for i in range(timeout):
             if self.iface.status() == const.IFACE_CONNECTED:
-                ret = True
-                break
+                print("connected to wifi %s"% (profile.ssid))
+                return True
             else:
+                print("\rtry to connect to wifi %s %d times"% (profile.ssid, i), end='', flush=True)
                 time.sleep(1)
-        return ret
+        print("\ncan't connect to wifi %s"% (profile.ssid))
+        return False
 
     def connect(self):
-        ssid = "Xiaomi 13 Pro"
-        passwd = "12345679"
-        profile = self.gen_profile_by_passwd(ssid, passwd)
-        if (self.connect_by_profile(profile) == True):
-            print("connect to %s success!"% (ssid))
-        else:
-            print("connect to %s failed!"% (ssid))
+        # profile = self.gen_profile_by_passwd(ssid, passwd)
+        profile = self.get_scaned_profile_by_ssid("Xiaomi 13 Pro")
+        profile = self.set_passwd_to_profile(profile, "12345679")
+        self.show_profile(profile)
+        self.connect_by_profile(profile)
 
 if __name__ == '__main__':
     wifi = WiFi()
     wifi.scan_wifi(show=False)
-    profile = wifi.get_scaned_profile_by_ssid("Xiaomi 13 Pro")
-
-    #wifi.connect()
+    wifi.connect()
 
 
